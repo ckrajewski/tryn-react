@@ -12,6 +12,7 @@ import { MAP_STYLE, MAPBOX_ACCESS_TOKEN } from './config.json';
 import {
   getStopMarkersLayer,
   getRoutesLayer,
+  getUserCreatedRoutesLayer,
   getVehicleMarkersLayer,
 } from './Route';
 import muniRoutesGeoJson from './res/muniRoutes.geo.json';
@@ -41,6 +42,13 @@ class Map extends Component {
       popup: {
         coordinates: { lon: 0, lat: 0 },
         info: { vid: '', heading: 0 },
+      },
+      stopInfo: {
+        firstStop: {},
+        secondStop: {},
+        isFirstStopSelected() { return !this.firstStop === {}; },
+        isSecondStopSelected() { return !this.secondStop === {}; },
+        canCreateRoute() { return this.isFirstStopSelected() && this.isSecondStopSelected(); },
       },
       currentStateTime: new Date(Date.now()),
       showStops: true,
@@ -73,6 +81,30 @@ class Map extends Component {
       },
       { force: true },
     );
+  }
+
+  getStopInfo(info) {
+    if (!this.state.stopInfo.isFirstStopSelected()) {
+      this.setState({ stopInfo: { firstStop: info } });
+    } else if (this.isSameStop(info, this.state.firstStop)) {
+      this.setState({ stopInfo: { firstStop: {} } });
+    } else if (!this.state.stopInfo.isSecondStopSelected()) {
+      this.setState({ stopInfo: { secondStop: info } });
+    } else if (this.isSameStop(info, this.state.secondStop)) {
+      this.setState({ stopInfo: { secondStop: {} } });
+    }
+    if (this.state.stopInfo.canCreateRoute()) {
+      const newGeojson = {
+        features: [this.state.stopInfo.firstStop, this.state.stopInfo.secondStop],
+        type: 'FeatureCollection',
+      };
+      getUserCreatedRoutesLayer(newGeojson);
+    }
+  }
+
+  isSameStop(frstStop, scndStop) {
+    console.log(this);
+    return frstStop.lngLat[0] === scndStop.lngLat[0] && frstStop.lngLat[1] === scndStop.lngLat[1];
   }
 
   /**
@@ -120,6 +152,8 @@ class Map extends Component {
       <div className="control-panel">
         <div className="routes-header">
           <h3>Time</h3>
+          {this.state.popup.coordinates.lon}
+          {this.state.popup.coordinates.lat}
           <DateTimePicker
             value={this.state.currentStateTime}
             onChange={newTime => this.setNewStateTime(newTime)}
@@ -157,7 +191,7 @@ class Map extends Component {
     // I don't know what settings used for,
     // just keeping it in following format to bypass linter errors
     console.log(settings && settings);
-
+    console.log(geojson);
     const selectedRouteNames = new Set();
     this.selectedRoutes
       .forEach(route => selectedRouteNames.add(route.properties.name));
@@ -165,8 +199,8 @@ class Map extends Component {
       .filter(route => selectedRouteNames.has(route.rid))
       .reduce((layers, route) => [
         ...layers,
-        this.state.showStops ? getStopMarkersLayer(route) : null,
-        getRoutesLayer(geojson),
+        this.state.showStops ? getStopMarkersLayer(route, info => this.getStopInfo(info)) : null,
+        getRoutesLayer(),
         getVehicleMarkersLayer(route, info => this.displayVehicleInfo(info)),
       ], []);
 
@@ -193,7 +227,6 @@ class Map extends Component {
               <p>Heading: {this.state.popup.info.heading}</p>
             </div>
           </Popup>) : null}
-
         <DeckGL
           {...viewport}
           layers={routeLayers}

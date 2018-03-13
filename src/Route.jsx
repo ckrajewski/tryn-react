@@ -9,7 +9,7 @@ const ICON_MAPPING = {
   },
 };
 
-export function getStopMarkersLayer(route) {
+export function getStopMarkersLayer(route, getStopInfo) {
   /* returns new DeckGL Icon Layer displaying all stops on given routes */
 
   // Push stop markers into data array
@@ -25,12 +25,27 @@ export function getStopMarkersLayer(route) {
     data,
     iconAtlas: atlasIcon,
     iconMapping: ICON_MAPPING,
+    pickable: true,
+    onClick: info => getStopInfo(info),
   }));
 }
 
 export function getRoutesLayer(geojson) {
   return (new GeoJsonLayer({
     id: 'muni-routes-geojson',
+    data: {
+      ...geojson,
+    },
+    lineWidthScale: 8,
+    filled: true,
+    stroked: true,
+    extruded: true,
+  }));
+}
+
+export function getUserCreatedRoutesLayer(geojson) {
+  return (new GeoJsonLayer({
+    id: 'user-routes-geojson',
     data: {
       ...geojson,
     },
