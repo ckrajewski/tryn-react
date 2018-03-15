@@ -89,11 +89,13 @@ class Map extends Component {
     if (!this.state.stopInfo.isFirstStopSelected()) {
       newObj = update(this.state.stopInfo, { firstStop: { $set: info } });
     } else if (this.isSameStop(info, this.state.stopInfo.firstStop)) {
-      newObj = update(this.state.stopInfo, { firstStop: {} });
+      newObj = update(this.state.stopInfo, { firstStop: { $set: {} } });
     } else if (!this.state.stopInfo.isSecondStopSelected()) {
       newObj = update(this.state.stopInfo, { secondStop: {$set: info} });
     } else if (this.isSameStop(info, this.state.stopInfo.secondStop)) {
-      newObj = update(this.state.stopInfo, { secondStop: {} });
+      newObj = update(this.state.stopInfo, { secondStop: {$set: {} } });
+    } else if (this.state.stopInfo.isFirstStopSelected() && this.state.stopInfo.isSecondStopSelected()){
+      newObj = update(this.state.stopInfo, { firstStop: { $set: info }, secondStop: { $set: {} } });
     }
     this.setState({ stopInfo: newObj });
     if (this.state.stopInfo.canCreateRoute()) {
@@ -107,7 +109,6 @@ class Map extends Component {
 
   isSameStop(frstStop, scndStop) {
     console.log(this);
-    debugger;
     return frstStop.lngLat[0] === scndStop.lngLat[0] && frstStop.lngLat[1] === scndStop.lngLat[1];
   }
 
