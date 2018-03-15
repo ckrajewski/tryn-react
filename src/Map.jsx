@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import ReactMapGL, { NavigationControl, Popup } from 'react-map-gl';
 import DeckGL from 'deck.gl';
+import update from 'immutability-helper';
 import {
   graphql,
   createRefetchContainer,
@@ -46,8 +47,8 @@ class Map extends Component {
       stopInfo: {
         firstStop: {},
         secondStop: {},
-        isFirstStopSelected() { return !this.firstStop === {}; },
-        isSecondStopSelected() { return !this.secondStop === {}; },
+        isFirstStopSelected() { return !(Object.getOwnPropertyNames(this.firstStop).length===0); },
+        isSecondStopSelected() { return !(Object.getOwnPropertyNames(this.secondStop).length===0); },
         canCreateRoute() { return this.isFirstStopSelected() && this.isSecondStopSelected(); },
       },
       currentStateTime: new Date(Date.now()),
@@ -84,15 +85,17 @@ class Map extends Component {
   }
 
   getStopInfo(info) {
+    let newObj = {};
     if (!this.state.stopInfo.isFirstStopSelected()) {
-      this.setState({ stopInfo: { firstStop: info } });
-    } else if (this.isSameStop(info, this.state.firstStop)) {
-      this.setState({ stopInfo: { firstStop: {} } });
+      newObj = update(this.state.stopInfo, { firstStop: { $set: info } });
+    } else if (this.isSameStop(info, this.state.stopInfo.firstStop)) {
+      newObj = update(this.state.stopInfo, { firstStop: {} });
     } else if (!this.state.stopInfo.isSecondStopSelected()) {
-      this.setState({ stopInfo: { secondStop: info } });
-    } else if (this.isSameStop(info, this.state.secondStop)) {
-      this.setState({ stopInfo: { secondStop: {} } });
+      newObj = update(this.state.stopInfo, { secondStop: {$set: info} });
+    } else if (this.isSameStop(info, this.state.stopInfo.secondStop)) {
+      newObj = update(this.state.stopInfo, { secondStop: {} });
     }
+    this.setState({ stopInfo: newObj });
     if (this.state.stopInfo.canCreateRoute()) {
       const newGeojson = {
         features: [this.state.stopInfo.firstStop, this.state.stopInfo.secondStop],
@@ -104,6 +107,7 @@ class Map extends Component {
 
   isSameStop(frstStop, scndStop) {
     console.log(this);
+    debugger;
     return frstStop.lngLat[0] === scndStop.lngLat[0] && frstStop.lngLat[1] === scndStop.lngLat[1];
   }
 
