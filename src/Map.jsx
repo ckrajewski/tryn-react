@@ -99,11 +99,19 @@ class Map extends Component {
     }
     this.setState({ stopInfo: newObj });
     if (this.state.stopInfo.canCreateRoute()) {
+      let newGeojson=this.state.geojson;
+     // newGeojson.features[0].geometry.coordinates[0]=[];
+     // newGeojson.features[0].geometry.coordinates[1]=[];
+     // newGeojson.features[0].geometry.coordinates[0][0]=this.state.stopInfo.firstStop.lngLat;
+     // newGeojson.features[0].geometry.coordinates[1][0]=this.state.stopInfo.secondStop.lngLat;
+      //debugger;
+      /*
       const newGeojson = {
         features: [this.state.stopInfo.firstStop, this.state.stopInfo.secondStop],
         type: 'FeatureCollection',
       };
-      getUserCreatedRoutesLayer(newGeojson);
+      */
+      getUserCreatedRoutesLayer(newGeojson,this.state.stopInfo.firstStop,this.state.stopInfo.secondStop);
     }
   }
 
@@ -205,7 +213,7 @@ class Map extends Component {
       .reduce((layers, route) => [
         ...layers,
         this.state.showStops ? getStopMarkersLayer(route, info => this.getStopInfo(info)) : null,
-        getRoutesLayer(),
+        getRoutesLayer(geojson),
         getVehicleMarkersLayer(route, info => this.displayVehicleInfo(info)),
       ], []);
 

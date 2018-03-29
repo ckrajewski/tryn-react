@@ -1,4 +1,6 @@
 import { GeoJsonLayer, IconLayer } from 'deck.gl';
+import { lineString, featureCollection } from '@turf/helpers';
+import { LineSegment } from '@turf/line-segment';
 
 // Icon Layer atlas icon
 const atlasIcon = require('./res/icon-atlas.png');
@@ -43,16 +45,23 @@ export function getRoutesLayer(geojson) {
   }));
 }
 
-export function getUserCreatedRoutesLayer(geojson) {
+export function getUserCreatedRoutesLayer(geojson,point1,point2) {
+  let pt1=point1.lngLat[0].toString();
+  debugger;
+  pt1=pt1.substring(0,pt1.indexOf(".")+4);
+  let pt2=point2.lngLat[0].toString();
+  pt2=pt2.substring(0,pt2.indexOf(".")+4);
+  let linestring1 = lineString.linestring(geojson.features[0].geometry.coordinates[0]);
   return (new GeoJsonLayer({
     id: 'user-routes-geojson',
     data: {
-      ...geojson,
+      ...linestring1,
     },
     lineWidthScale: 8,
     filled: true,
     stroked: true,
     extruded: true,
+    getLineColor: f => [155, 75, 205],
   }));
 }
 
