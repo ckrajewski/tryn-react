@@ -12,7 +12,7 @@ import * as turf from '@turf/turf';
 import { MAP_STYLE, MAPBOX_ACCESS_TOKEN } from './config.json';
 import {
   getStopMarkersLayer,
-  // getRoutesLayer,
+  getRoutesLayer,
   getVehicleMarkersLayer,
   getSubRoutesLayer,
 } from './Route';
@@ -198,13 +198,12 @@ class Map extends Component {
     } else {
       this.selectedRoutes.add(route);
     }
-    /*
+
     const newGeojson = {
       features: Array.from(this.selectedRoutes),
       type: 'FeatureCollection',
     };
     this.setState({ geojson: newGeojson });
-    */
   }
 
   renderControlPanel() {
@@ -245,7 +244,7 @@ class Map extends Component {
     const onViewportChange = viewport => this.setState({ viewport });
     const { trynState } = this.props.trynState;
     const { routes } = trynState || {};
-    const { viewport, subroute } = this.state;
+    const { viewport, subroute, geojson } = this.state;
     const selectedStops = [...this.selectedStops];
     // I don't know what settings used for,
     // just keeping it in following format to bypass linter errors
@@ -263,7 +262,7 @@ class Map extends Component {
             marker => this.getStopInfo(route, marker.object.position), selectedStops,
           )
           : null,
-        // getRoutesLayer(geojson),
+        getRoutesLayer(geojson),
         !(Object.keys(subroute).length === 0)
         && subroute.constructor === Object && selectedStops.length === 2
           ? getSubRoutesLayer(subroute)
