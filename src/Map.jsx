@@ -118,8 +118,8 @@ class Map extends Component {
    * given the two selected stop sids, returns a line segment
    * between them
    */
-  getRouteBetweenStops(routeStops) {
-    const stopSids = this.selectedStops.map(stop => stop.sid);
+  getRouteBetweenStops(routeStops, routeId) {
+    const stopSids = this.selectedStops[routeId].map(stop => stop.sid);
     stopSids.sort((a, b) => a - b);
     const route = routeStops.map(stop => this.getCoordinateArray(stop));
     let startingPoint = routeStops.find(stop => stop.sid === stopSids[0]);
@@ -138,24 +138,31 @@ class Map extends Component {
    * Stores up to two stops sids. Used to draw subroutes
    */
   getStopInfo(route, stopCoordinates) {
-    let stops = this.selectedStops;
+    const stops = this.selectedStops;
     const station
     = route.stops.find(currentStop => currentStop.lon === stopCoordinates[0]
     && currentStop.lat === stopCoordinates[1]);
     const stopInfo = Object.assign({}, stopCoordinates);
     stopInfo.sid = station.sid;
-    if (stops.length > 1) {
-      stops = [];
+    const routeId = route.rid;
+    let currentRouteStopsInfo = stops[routeId];
+    if (typeof currentRouteStopsInfo === 'undefined') {
+      currentRouteStopsInfo = [];
     }
-    if (stops.length === 0
-      || (stops.length === 1 && !this.checkIfTwoStopsAreEqual(stops[0], stopCoordinates))) {
+    if (currentRouteStopsInfo.length > 1) {
+      currentRouteStopsInfo = [];
+    }
+    if (currentRouteStopsInfo.length === 0
+      || (currentRouteStopsInfo.length === 1
+        && !this.checkIfTwoStopsAreEqual(currentRouteStopsInfo[0], stopCoordinates))) {
       console.log(`Stop Sid: ${stopInfo.sid}`);
-      stops.push(stopInfo);
+      currentRouteStopsInfo.push(stopInfo);
     }
     // this.setState({ selectedStops: stops });
+    stops[routeId] = currentRouteStopsInfo;
     this.selectedStops = stops;
-    if (stops.length === 2) {
-      this.getRouteBetweenStops(route.stops);
+    if (currentRouteStopsInfo.length === 2) {
+      this.getRouteBetweenStops(route.stops, routeId);
     }
   }
   /**
